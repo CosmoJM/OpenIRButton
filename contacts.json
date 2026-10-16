@@ -1,0 +1,32 @@
+{
+  "_README": "THIS IS THE ONLY FILE YOU MUST EDIT. Replace the organization name and the three contacts below with your own. Add or remove contacts freely - the window resizes to fit. Keep the quotes and commas exactly as shown.",
+
+  "organization": "Example Corporation",
+
+  "contacts": [
+    {
+      "order": "1",
+      "role": "IT Manager",
+      "name": "First Contact Name",
+      "phone": "+1 (555) 555-0101",
+      "email": "first.contact@example.com",
+      "note": "Call first. If no answer within 10 minutes, go to contact 2."
+    },
+    {
+      "order": "2",
+      "role": "Operations Executive",
+      "name": "Second Contact Name",
+      "phone": "+1 (555) 555-0102",
+      "email": "second.contact@example.com",
+      "note": "If no answer within 10 minutes, go to contact 3."
+    },
+    {
+      "order": "3",
+      "role": "24/7 Security Operations Center",
+      "name": "Security Provider Name",
+      "phone": "+1 (555) 555-0103",
+      "email": "soc@example-security.com",
+      "note": "Final escalation. Tell them which company you are calling from. Keep trying contacts until you reach someone."
+    }
+  ]
+}
