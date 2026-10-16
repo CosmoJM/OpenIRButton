@@ -1,0 +1,17 @@
+# Build output - build from source instead of committing binaries
+IncidentButton.exe
+*.pdb
+
+# Intune packaging output
+*.intunewin
+output/
+
+# Local overrides - keep real contact details out of the repo
+contacts.local.json
+
+# Windows / editor noise
+Thumbs.db
+desktop.ini
+.vs/
+*.user
+*.suo
