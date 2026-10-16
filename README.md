@@ -77,7 +77,7 @@ The numbers match the annotated screenshot above.
 |---|---|---|
 | 1 | **Red header** | Fixed instructions: stay calm, don't shut down or unplug the computer (that destroys evidence), and disconnect from the network if compromise looks active. The wording lives in `IncidentButton.cs` (see [CUSTOMIZATION.md](docs/CUSTOMIZATION.md)). |
 | 2 | **Order badge + "Role: Name"** | Shows each contact's position in the escalation chain. Cards appear in the **same order as in `contacts.json`**. The number in the red square is just the `order` text from the file. |
-| 3 | **Phone number** (red link) | Opens the PC's default calling app (Microsoft Teams, Phone Link, Zoom Phone, a softphone, etc.) with the number filled in. Before dialing, the app strips everything except digits and `+`. If nothing on the PC handles phone links, the number is **copied to the clipboard** instead. |
+| 3 | **Phone number** (red link) | Opens the PC's default calling app (Microsoft Teams, Phone Link, Zoom Phone, a softphone, etc.) with the number filled in. Before dialing, the app strips everything except digits and `+`. If no calling app is set up, Windows asks which app to use. If Windows can't open the link at all, the number is **copied to the clipboard** instead. |
 | 4 | **Email address** (blue link) | Opens a new email to that contact in the default mail app (Outlook, etc.). |
 | 5 | **Note** (grey italic) | Your instructions for this step, for example "If no answer within 10 minutes, go to contact 2." Long notes wrap, and the card grows to fit. |
 | 6 | **Copy contact list** | Copies the whole chain to the clipboard as plain text, one contact per line (`1. IT Manager - First Contact Name - +1 (555) 555-0101 - first.contact@example.com`). The button changes to **Copied!**. This helps when the employee needs to call from a mobile phone or paste the list into a chat. |
@@ -206,6 +206,7 @@ Rules that keep it working:
 - **Keep `order` to one or two characters**, because it sits in a small square badge.
 - **Use as many contacts as you need.** The window grows to fit and scrolls if it would be taller than the screen.
 - **Save the file as UTF-8** (Notepad: *File → Save As → Encoding: UTF-8*) if you use accented characters.
+- **Run the validation command after every edit** (step 3 of the [Quick start](#quick-start-for-it)). The app's reader is forgiving: a missing comma or quote usually shows up as wrong or missing text in the panel, not as an error.
 - The `_README` line at the top is ignored by the app. Keep it or delete it.
 
 ### ⚠ Before you push to GitHub
@@ -235,7 +236,7 @@ Removal is the same with `uninstall.ps1`.
 
 ## Updating contacts later
 
-You don't need to rebuild or reinstall. The app re-reads `C:\ProgramData\IncidentButton\contacts.json` every time the panel opens, so pushing a new file (for example with an Intune **Platform script**) takes effect immediately. A ready-to-use script is in [SETUP-GUIDE.md](SETUP-GUIDE.md#changing-contacts-later--no-rebuild-needed).
+You don't need to rebuild or reinstall. The app re-reads `C:\ProgramData\IncidentButton\contacts.json` every time the panel opens, so pushing a new file (for example with an Intune **Platform script**) takes effect immediately. (A changed organization name reaches the tray tooltip and About box at the user's next sign-in.) A ready-to-use script is in [SETUP-GUIDE.md](SETUP-GUIDE.md#changing-contacts-later--no-rebuild-needed).
 
 ---
 
@@ -256,7 +257,7 @@ You don't need to rebuild or reinstall. The app re-reads `C:\ProgramData\Inciden
 - Windows 10 or 11, 64-bit.
 - .NET Framework 4.x. It's built into every supported Windows 10/11 release, so there's nothing to install.
 - Pinning to the taskbar needs **Windows 11 22H2 or later**. On older builds the app works the same, but the icon may sit in the `^` overflow area until the user drags it out.
-- A calling app registered for `tel:` links (Teams, Phone Link, etc.) if you want click-to-call. Without one, clicking a number copies it to the clipboard.
+- A calling app set up for `tel:` links (Teams, Phone Link, etc.) if you want click-to-call. Without one, Windows asks which app to use when a number is clicked.
 
 ---
 
@@ -279,7 +280,7 @@ You don't need to rebuild or reinstall. The app re-reads `C:\ProgramData\Inciden
 ## FAQ
 
 **Employees see "Example Corporation" and fake contacts. Why?**
-The app couldn't read `C:\ProgramData\IncidentButton\contacts.json`. Either it isn't there or it has a syntax error. Check it with `Get-Content "C:\ProgramData\IncidentButton\contacts.json" -Raw | ConvertFrom-Json`. Setting your real details in the code's fallback values as well (see [CUSTOMIZATION.md](docs/CUSTOMIZATION.md#fallback-contacts)) keeps this from ever showing the wrong people.
+The app couldn't read any contacts from `C:\ProgramData\IncidentButton\contacts.json`. Either it isn't there or it's badly damaged. Check it with `Get-Content "C:\ProgramData\IncidentButton\contacts.json" -Raw | ConvertFrom-Json`. Setting your real details in the code's fallback values as well (see [CUSTOMIZATION.md](docs/CUSTOMIZATION.md#fallback-contacts)) keeps this from ever showing the wrong people.
 
 **Do I need to rebuild when a phone number changes?**
 No. Push the new `contacts.json` to `C:\ProgramData\IncidentButton\` and it takes effect the next time anyone opens the panel.

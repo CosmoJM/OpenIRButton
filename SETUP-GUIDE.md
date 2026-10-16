@@ -79,7 +79,7 @@ Files in this folder:
    ```
 
 6. Save. If you used accented letters, use *File → Save As → Encoding: UTF-8*.
-7. **Validate it.** Open PowerShell in this folder (in Explorer, *File → Open Windows PowerShell*, or type `powershell` in the address bar) and run:
+7. **Validate it.** Open PowerShell in this folder (in File Explorer, click the address bar, type `powershell` and press Enter; on Windows 11 you can also right-click the folder → *Open in Terminal*) and run:
 
    ```powershell
    Get-Content .\contacts.json -Raw | ConvertFrom-Json | Select-Object -ExpandProperty contacts | Format-Table order, role, name, phone, email
@@ -94,6 +94,7 @@ Rules to remember (details in [CUSTOMIZATION.md](docs/CUSTOMIZATION.md#contactsj
 - `role` + `name` together should stay under about 45 characters, because that line doesn't wrap.
 - Don't use `{` or `}` inside any value.
 - Every contact needs a `name`, or it's skipped.
+- **Always run the validation command.** The app's reader is forgiving: a missing comma or quote usually doesn't produce an error message in the app, it just shows wrong or missing text. The validation command is what catches those mistakes.
 
 > **Public repository?** Don't commit your real `contacts.json` to a public GitHub repo. Edit it only on the machine you package from, or keep your organization's copy in a private repository.
 
@@ -104,7 +105,16 @@ Rules to remember (details in [CUSTOMIZATION.md](docs/CUSTOMIZATION.md#contactsj
 
 ## Step 2 — Build and test it on your own PC
 
-1. In PowerShell, in this folder, run:
+1. **Put your contacts where the app looks for them.** The app always reads its contacts from `C:\ProgramData\IncidentButton\contacts.json`, not from this folder. Until that file exists, it shows the example contacts. Open PowerShell **as Administrator** in this folder and run:
+
+   ```powershell
+   New-Item -ItemType Directory -Force "$env:ProgramData\IncidentButton" | Out-Null
+   Copy-Item .\contacts.json "$env:ProgramData\IncidentButton\contacts.json" -Force
+   ```
+
+   If you change `contacts.json` again later, run the `Copy-Item` line again. The panel picks up the change the next time you open it.
+
+2. **Build and launch it.** In PowerShell, in this folder, run:
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File .\Build.ps1 -Run
@@ -112,19 +122,10 @@ Rules to remember (details in [CUSTOMIZATION.md](docs/CUSTOMIZATION.md#contactsj
 
    You should see `Built: ...\IncidentButton.exe` in green, and a shield appears near the clock.
 
-2. **Preview it with your real contacts.** The app always reads its contacts from `C:\ProgramData\IncidentButton\contacts.json`, not from this folder. Until that file exists, it shows the example contacts. Open PowerShell **as Administrator** in this folder and run:
-
-   ```powershell
-   New-Item -ItemType Directory -Force "$env:ProgramData\IncidentButton" | Out-Null
-   Copy-Item .\contacts.json "$env:ProgramData\IncidentButton\contacts.json" -Force
-   ```
-
-   You don't need to restart the app. It re-reads the file every time you open the panel.
-
 3. Click the shield and check:
    - [ ] Your organization name is in the window title
    - [ ] Every name, role, number and email is correct, and nothing is cut off on the right
-   - [ ] Clicking a phone number opens your calling app (or copies the number if you don't have one)
+   - [ ] Clicking a phone number opens your calling app (if none is set up, Windows asks which app to use)
    - [ ] Clicking an email opens a new message
    - [ ] **Email IT now** opens a message to contact #1 with your PC name in the subject
    - [ ] **Copy contact list** puts the list on the clipboard (paste into Notepad to check)
@@ -197,7 +198,7 @@ Go to **Intune admin center → Apps → Windows → + Add → App type: Windows
 |---|---|
 | Install command | `%windir%\sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File install.ps1` |
 | Uninstall command | `%windir%\sysnative\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -NoProfile -File uninstall.ps1` |
-| Installation time required | 15 (default is fine) |
+| Installation time required (mins) | 60 (the default is fine) |
 | Allow available uninstall | No |
 | Install behavior | **System** |
 | Device restart behavior | **No specific action** |
@@ -283,7 +284,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
    ```
 3. To check whether a PC needs it, test:
    ```powershell
-   (Get-Content "$env:ProgramFiles\IncidentButton\version.txt" -ErrorAction SilentlyContinue) -eq '1.0.0'
+   (Get-Content "$env:ProgramW6432\IncidentButton\version.txt" -ErrorAction SilentlyContinue) -eq '1.0.0'
    ```
 
 ### Configuration Manager (SCCM / MECM)
@@ -300,7 +301,7 @@ Create an **Application** with a **Script Installer** deployment type:
 | Detection method | *Use a custom script* (PowerShell): |
 
 ```powershell
-if ((Get-Content "$env:ProgramFiles\IncidentButton\version.txt" -ErrorAction SilentlyContinue) -eq '1.0.0') { 'Installed' }
+if ((Get-Content "$env:ProgramW6432\IncidentButton\version.txt" -ErrorAction SilentlyContinue) -eq '1.0.0') { 'Installed' }
 ```
 
 ### Group Policy (domain-joined PCs)
@@ -310,6 +311,7 @@ if ((Get-Content "$env:ProgramFiles\IncidentButton\version.txt" -ErrorAction Sil
    - Script name: `powershell.exe`
    - Script parameters: `-ExecutionPolicy Bypass -NoProfile -File "\\fileserver\deploy$\IncidentButton\install.ps1"`
 3. The app is installed at the next restart and appears at the next sign-in.
+4. Recommended: in the same GPO, enable **Computer Configuration → Policies → Administrative Templates → System → Logon → Always wait for the network at computer startup and logon**, so that the share is reachable when the startup script runs.
 
 > With Group Policy, `install.ps1` runs at every startup. That's harmless, and it also means updating `contacts.json` on the share updates every PC at its next restart.
 
@@ -330,6 +332,8 @@ Set-Content -Path "$dir\contacts.json" -Encoding UTF8 -Value @'
 ```
 
 > Platform scripts run once per device. For the next change, edit the script with the new contents; Intune re-runs it when the script content changes.
+
+> The **contact cards and window title** update the next time the panel opens. The **tray tooltip and About box** read the organization name when the app starts, so a changed organization name shows there after the user's next sign-in.
 
 Also put the updated `contacts.json` in your package source folder, so that new installs get the current list.
 
@@ -365,16 +369,17 @@ PCs on the old version then fail detection, and Intune reinstalls over the top. 
 
 | What you see | Why | Fix |
 |---|---|---|
-| Panel shows **Example Corporation** / example contacts | `C:\ProgramData\IncidentButton\contacts.json` is missing or invalid | Run `Get-Content "C:\ProgramData\IncidentButton\contacts.json" -Raw \| ConvertFrom-Json` on that PC. Fix the error it reports, or re-push the file |
+| Panel shows **Example Corporation** / example contacts | `C:\ProgramData\IncidentButton\contacts.json` is missing, or so damaged that no contact in it can be read | Check the file exists, then run `Get-Content "C:\ProgramData\IncidentButton\contacts.json" -Raw \| ConvertFrom-Json` on that PC. Fix the error it reports, or re-push the file |
+| Wrong, missing or merged text on a card | A missing quote or comma in `contacts.json`. The app's reader is forgiving, so it shows what it could read instead of an error | Run the validation command from [Step 1](#step-1--edit-your-contacts) and fix what it reports |
 | You edited `contacts.json` but nothing changed | You edited the copy in your build folder. The app only reads the one in `C:\ProgramData\IncidentButton\` | Copy it there (elevated) or push it ([Changing contacts later](#changing-contacts-later--no-rebuild-needed)) |
 | Some contacts are missing | That contact has an empty `name`, or a `{`/`}` inside a value | Fill in `name`; remove braces from values |
 | Contacts in the wrong order | Cards follow **file order**, not the `order` field | Reorder the blocks in the file |
 | Heading text runs off the edge of a card | `role` + `name` too long | Shorten them; move detail into `note` |
 | Accented characters look garbled | File saved in ANSI encoding | Save as UTF-8 |
-| Clicking a phone number only copies it | No app on the PC handles `tel:` links | Set a default calling app (Teams, Phone Link…) under *Settings → Apps → Default apps → Choose defaults by link type → TEL* |
+| Clicking a phone number asks which app to use, or does nothing useful | No app on the PC is set up for `tel:` links. (If Windows can't open the link at all, the app copies the number to the clipboard instead) | Set a default calling app (Teams, Phone Link…) under *Settings → Apps → Default apps → Choose defaults by link type → TEL* |
 | **Email IT now** goes to the wrong person | It always sends to contact #1's email | Put a monitored address on contact #1, or hard-code one ([CUSTOMIZATION.md](docs/CUSTOMIZATION.md#email-it-now-recipient-subject-body)) |
 | Intune: *"The application was not detected after installation completed successfully"* | Detection value ≠ `$Version` in `install.ps1`, or the install command isn't using `sysnative` | Make the two versions match exactly; copy the install command from Step 4 |
-| Intune: install fails | Execution policy or a missing file in the package | Check `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\IntuneManagementExtension.log`; make sure the package folder had all files |
+| Intune: install fails | Execution policy or a missing file in the package | Check `IntuneManagementExtension.log` and `AppWorkload.log` in `C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\`; make sure the package folder had all files |
 | Icon hidden behind the `^` arrow | Windows creates the taskbar entry the first time the app runs; the app pins itself once that exists | Sign out and in again. Users can also drag it onto the taskbar. Pre-22H2 Windows 11 and Windows 10 don't support auto-pinning |
 | Icon doesn't appear right after install | The installer couldn't launch the app in the user's session | It appears at the next sign-in |
 | `Build.ps1`: *"C# compiler not found"* | .NET Framework 4 compiler missing (very rare) | Check `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe` exists; enable .NET Framework 4.x in *Windows Features* |
