@@ -24,7 +24,7 @@ if (-not (Test-Path $src)) { throw "IncidentButton.cs not found in $PSScriptRoot
 Get-Process IncidentButton -ErrorAction SilentlyContinue | Stop-Process -Force
 Start-Sleep -Milliseconds 500
 
-$cscArgs = @('/nologo', '/target:winexe', '/platform:anycpu', "/out:$exe")
+$cscArgs = @('/nologo', '/codepage:65001', '/target:winexe', '/platform:anycpu', "/out:$exe")
 if (Test-Path $ico) {
     $cscArgs += "/win32icon:$ico"          # icon shown in Explorer and Task Manager
     $cscArgs += "/resource:$ico,app.ico"   # same icon embedded for the tray and window

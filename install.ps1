@@ -35,7 +35,7 @@ if (Test-Path $SrcExe) {
 } elseif (Test-Path $SrcCs) {
     # Fallback: compile on the endpoint if no prebuilt exe was packaged
     $csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
-    $a = @('/nologo', '/target:winexe', '/platform:anycpu', "/out:$Exe")
+    $a = @('/nologo', '/codepage:65001', '/target:winexe', '/platform:anycpu', "/out:$Exe")
     if (Test-Path $SrcIco) { $a += "/win32icon:$SrcIco"; $a += "/resource:$SrcIco,app.ico" }
     $a += $SrcCs
     & $csc $a

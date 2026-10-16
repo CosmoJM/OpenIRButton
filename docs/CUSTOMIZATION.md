@@ -93,13 +93,13 @@ This changes what appears under *Properties → Details* of `IncidentButton.exe`
 **File:** `IncidentButton.cs` · **Search for:** `CYBER INCIDENT?` (around line 358)
 
 ```csharp
-Text = "⚠  CYBER INCIDENT?",
+Text = "\u26A0  CYBER INCIDENT?",   // \u26A0 = warning sign
 ...
 Text = "Stay calm. Do NOT shut down or unplug your computer unless told to.\n" +
        "Disconnect from Wi-Fi/network if you suspect active compromise, then call:",
 ```
 
-- `\n` starts a new line. The header area is a fixed 84 px tall, so keep the second label to **two lines** of about 75 characters each.
+- `\n` starts a new line. `\u26A0` is the ⚠ symbol, written as a code so it survives any text editor's encoding. The header area is a fixed 84 px tall, so keep the second label to **two lines** of about 75 characters each.
 - Make sure this advice matches your incident response plan. For example, some organizations want users to **leave the network connected** so the EDR can respond. If so, change the second line.
 
 ---

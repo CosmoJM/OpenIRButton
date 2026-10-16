@@ -355,7 +355,7 @@ namespace IncidentButton
             var header = new Panel { BackColor = Accent, Bounds = new Rectangle(0, 0, 600, 84) };
             header.Controls.Add(new Label
             {
-                Text = "⚠  CYBER INCIDENT?",
+                Text = "\u26A0  CYBER INCIDENT?",   // \u26A0 = warning sign
                 ForeColor = Color.White,
                 Font = new Font("Segoe UI", 18f, FontStyle.Bold),
                 AutoSize = true, Location = new Point(18, 10), BackColor = Accent
@@ -391,9 +391,13 @@ namespace IncidentButton
                 var sb = new System.Text.StringBuilder();
                 foreach (var c in contacts)
                     sb.AppendLine(c.Order + ". " + c.Role + " - " + c.Name + " - " + c.Phone + " - " + c.Email);
-                Clipboard.SetText(sb.ToString());
-                Config.Log("Contact list copied to clipboard");
-                copyBtn.Text = "Copied!";
+                try
+                {
+                    Clipboard.SetText(sb.ToString());
+                    Config.Log("Contact list copied to clipboard");
+                    copyBtn.Text = "Copied!";
+                }
+                catch { copyBtn.Text = "Copy failed - retry"; }
             };
             Controls.Add(copyBtn);
 
@@ -477,7 +481,7 @@ namespace IncidentButton
 
             var phone = new LinkLabel
             {
-                Text = "☎ " + c.Phone,
+                Text = "\u260E " + c.Phone,   // \u260E = telephone sign
                 Font = new Font("Segoe UI", 12f, FontStyle.Bold),
                 AutoSize = true, Location = new Point(64, 34),
                 LinkColor = Accent
@@ -486,7 +490,7 @@ namespace IncidentButton
             {
                 Config.Log("Phone clicked for contact " + c.Order + " (" + c.Name + ")");
                 try { Process.Start("tel:" + Regex.Replace(c.Phone, @"[^\d+]", "")); }
-                catch { Clipboard.SetText(c.Phone); }
+                catch { try { Clipboard.SetText(c.Phone); } catch { } }
             };
             p.Controls.Add(phone);
 
